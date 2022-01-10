@@ -1,8 +1,10 @@
-﻿using NATS.Client;
+﻿using ClassLibrary1;
+using NATS.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NATSDemo1
@@ -42,10 +44,14 @@ namespace NATSDemo1
 
             while (true)
             {
-                var text = Console.ReadLine();
-                Console.WriteLine($"Sending: {text}");
-                byte[] data = Encoding.UTF8.GetBytes(text);
-                _connection?.Publish("nats.demo.pubsub", data);
+                //var text = Console.ReadLine();
+                //Console.WriteLine($"Sending: {text}");
+                //byte[] data = Encoding.UTF8.GetBytes(text);
+                //_connection?.Publish("nats.demo.pubsub", data);
+                var company = new Company();
+                var jsonString = JsonSerializer.Serialize(company);
+                var bytes = Encoding.UTF8.GetBytes(jsonString);
+                _connection?.Publish("nats.demo.pubsub", bytes);
             }
 
             //for (int i = 1; i <= _messageCount; i++)

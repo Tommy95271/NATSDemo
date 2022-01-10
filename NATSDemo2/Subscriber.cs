@@ -17,7 +17,7 @@ namespace NATSDemo2
             {
                 SubscribePubSub();
                 _exit = true;
-                _connection.Drain(5000);
+                _connection.Drain();
 
             }
         }
@@ -34,7 +34,7 @@ namespace NATSDemo2
         private static void SubscribePubSub()
         {
             ISyncSubscription sub = _connection.SubscribeSync("nats.demo.pubsub");
-            while (!_exit)
+            //while (!_exit)
             {
                 var message = sub.NextMessage();
                 if (message != null)
