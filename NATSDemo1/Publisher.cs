@@ -40,18 +40,26 @@ namespace NATSDemo1
             Console.WriteLine("Pub/Sub demo");
             Console.WriteLine("============");
 
-            for (int i = 1; i <= _messageCount; i++)
+            while (true)
             {
-                string message = $"Message {i}";
-
-                Console.WriteLine($"Sending: {message}");
-
-                byte[] data = Encoding.UTF8.GetBytes(message);
-
+                var text = Console.ReadLine();
+                Console.WriteLine($"Sending: {text}");
+                byte[] data = Encoding.UTF8.GetBytes(text);
                 _connection?.Publish("nats.demo.pubsub", data);
-
-                Thread.Sleep(_sendIntervalMs);
             }
+
+            //for (int i = 1; i <= _messageCount; i++)
+            //{
+            //    string message = $"Message {i}";
+
+            //    Console.WriteLine($"Sending: {message}");
+
+            //    byte[] data = Encoding.UTF8.GetBytes(message);
+
+            //    _connection?.Publish("nats.demo.pubsub", data);
+
+            //    Thread.Sleep(_sendIntervalMs);
+            //}
         }
     }
 }
