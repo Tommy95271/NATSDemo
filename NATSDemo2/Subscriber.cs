@@ -10,6 +10,7 @@ namespace NATSDemo2
     internal class Subscriber
     {
         private static bool _exit = false;
+        private static int _messageCount = 5;
         private static IConnection _connection;
         internal static void Run()
         {
@@ -33,16 +34,14 @@ namespace NATSDemo2
 
         private static void SubscribePubSub()
         {
-            ISyncSubscription sub = _connection.SubscribeSync("nats.demo.pubsub");
-            //while (!_exit)
+            EventHandler<MsgHandlerEventArgs> handler = (sender, args) =>
             {
-                var message = sub.NextMessage();
-                if (message != null)
-                {
-                    string data = Encoding.UTF8.GetString(message.Data);
-                    LogMessage(data);
-                }
-            }
+                string data = Encoding.UTF8.GetString(args.Message.Data);
+                LogMessage(data);
+            };
+
+            IAsyncSubscription sub = _connection.SubscribeAsync("nats.demo.pubsub", handler);
+            Console.ReadLine();
         }
 
         private static void LogMessage(string message)

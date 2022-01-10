@@ -44,14 +44,14 @@ namespace NATSDemo1
 
             while (true)
             {
-                //var text = Console.ReadLine();
-                //Console.WriteLine($"Sending: {text}");
-                //byte[] data = Encoding.UTF8.GetBytes(text);
-                //_connection?.Publish("nats.demo.pubsub", data);
-                var company = new Company();
-                var jsonString = JsonSerializer.Serialize(company);
-                var bytes = Encoding.UTF8.GetBytes(jsonString);
-                _connection?.Publish("nats.demo.pubsub", bytes);
+                var text = Console.ReadLine();
+                Console.WriteLine($"Sending: {text}");
+                byte[] data = Encoding.UTF8.GetBytes(text);
+                _connection?.Publish("nats.demo.pubsub", data);
+                //var company = new Company();
+                //var jsonString = JsonSerializer.Serialize(company);
+                //var bytes = Encoding.UTF8.GetBytes(jsonString);
+                //_connection?.Publish("nats.demo.pubsub", bytes);
             }
 
             //for (int i = 1; i <= _messageCount; i++)
