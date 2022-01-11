@@ -9,16 +9,12 @@ namespace NATSDemo2
 {
     internal class Subscriber
     {
-        private static bool _exit = false;
-        private static int _messageCount = 5;
         private static IConnection _connection;
         internal static void Run()
         {
             using (_connection = ConnectToNats())
             {
                 SubscribePubSub();
-                _exit = true;
-                _connection.Drain();
 
             }
         }

@@ -13,10 +13,6 @@ namespace NATSDemo1
     {
         private static IConnection? _connection;
 
-        private static int _messageCount = 25;
-
-        private static int _sendIntervalMs = 100;
-
         internal static void Run()
         {
             using (_connection = ConnectToNats())
@@ -42,30 +38,10 @@ namespace NATSDemo1
             Console.WriteLine("Pub/Sub demo");
             Console.WriteLine("============");
 
-            while (true)
-            {
-                var text = Console.ReadLine();
-                Console.WriteLine($"Sending: {text}");
-                byte[] data = Encoding.UTF8.GetBytes(text);
-                _connection?.Publish("nats.demo.pubsub", data);
-                //var company = new Company();
-                //var jsonString = JsonSerializer.Serialize(company);
-                //var bytes = Encoding.UTF8.GetBytes(jsonString);
-                //_connection?.Publish("nats.demo.pubsub", bytes);
-            }
-
-            //for (int i = 1; i <= _messageCount; i++)
-            //{
-            //    string message = $"Message {i}";
-
-            //    Console.WriteLine($"Sending: {message}");
-
-            //    byte[] data = Encoding.UTF8.GetBytes(message);
-
-            //    _connection?.Publish("nats.demo.pubsub", data);
-
-            //    Thread.Sleep(_sendIntervalMs);
-            //}
+            var company = new Company();
+            var jsonString = JsonSerializer.Serialize(company);
+            var bytes = Encoding.UTF8.GetBytes(jsonString);
+            _connection?.Publish("nats.demo.pubsub", bytes);
         }
     }
 }
