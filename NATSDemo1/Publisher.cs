@@ -14,15 +14,55 @@ namespace NATSDemo1
     public class Publisher
     {
         private static IConnection? _connection;
+        private const string ALLOWED_OPTIONS = "123qQ";
+        private static bool exit = false;
+
 
         internal static void Run()
         {
             using (_connection = ConnectToNats())
             {
-                PubSub();
-                _connection.Drain(5000);
+                while (!exit)
+                {
+                    Console.Clear();
 
-                BenchmarkRunner.Run(typeof(Publisher).Assembly);
+                    Console.WriteLine("NATS demo producer");
+                    Console.WriteLine("==================");
+                    Console.WriteLine("Select mode:");
+                    Console.WriteLine("1) Pub / Sub");
+                    Console.WriteLine("2) Request / Response");
+                    Console.WriteLine("3) Load-balancing (queue groups)");
+                    Console.WriteLine("q) Quit");
+
+                    ConsoleKeyInfo input;
+                    do
+                    {
+                        input = Console.ReadKey(true);
+                    } while (!ALLOWED_OPTIONS.Contains(input.KeyChar));
+
+                    switch (input.KeyChar)
+                    {
+                        case '1':
+                            PubSub();
+                            break;
+                        case '2':
+                            RequestResponse();
+                            break;
+                        case '3':
+                            QueueGroups();
+                            break;
+                        case 'q':
+                        case 'Q':
+                            exit = true;
+                            continue;
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine("Done. Press any key to continue...");
+                    Console.ReadKey(true);
+                    Clear();
+                    //BenchmarkRunner.Run(typeof(Publisher).Assembly);
+                }
             }
         }
 
@@ -41,11 +81,57 @@ namespace NATSDemo1
             Console.WriteLine("Pub/Sub demo");
             Console.WriteLine("============");
 
-            var company = new Company();
-            var jsonString = JsonSerializer.Serialize(company);
-            var bytes = Encoding.UTF8.GetBytes(jsonString);
-            _connection?.Publish("nats.demo.pubsub", bytes);
+            var text = Console.ReadLine();
+            ConsolePublish(text, "nats.demo.pubsub");
         }
+
+        private static void QueueGroups()
+        {
+            Console.Clear();
+            Console.WriteLine("Load-balancing demo");
+            Console.WriteLine("===================");
+            var text = Console.ReadLine();
+            while (text.ToLower() != "q")
+            {
+                ConsolePublish(text, "nats.demo.queuegroups");
+                text = Console.ReadLine();
+                if (text.ToLower() == "q") break;
+            }
+        }
+
+        /// <summary>
+        /// Console WriteLine and Publish
+        /// </summary>
+        /// <param name="text">The content to publish</param>
+        /// <param name="subject">The subject to publish to</param>
+        private static void ConsolePublish(string text, string subject)
+        {
+            Console.WriteLine($"Sending: {text}");
+            byte[] data = Encoding.UTF8.GetBytes(text);
+            _connection?.Publish(subject, data);
+        }
+
+        private static void RequestResponse()
+        {
+            Console.Clear();
+            Console.WriteLine("Request/Response demo");
+            Console.WriteLine("================================");
+
+            var text = Console.ReadLine();
+            Console.WriteLine($"Sending: {text}");
+            byte[] data = Encoding.UTF8.GetBytes(text);
+            var response = _connection.Request("nats.demo.requestresponse", data, 5000);
+            var responseMsg = Encoding.UTF8.GetString(response.Data);
+            Console.WriteLine($"Response: {responseMsg}");
+        }
+
+
+        private static void Clear()
+        {
+            Console.Clear();
+            _connection.Publish("nats.demo.clear", null);
+        }
+
 
         [Benchmark]
         public void BenchmarkPubSub()
