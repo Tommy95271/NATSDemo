@@ -1,4 +1,6 @@
-﻿using ClassLibrary1;
+﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using ClassLibrary1;
 using NATS.Client;
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NATSDemo1
 {
-    internal class Publisher
+    public class Publisher
     {
         private static IConnection? _connection;
 
@@ -20,6 +22,7 @@ namespace NATSDemo1
                 PubSub();
                 _connection.Drain(5000);
 
+                BenchmarkRunner.Run(typeof(Publisher).Assembly);
             }
         }
 
@@ -42,6 +45,18 @@ namespace NATSDemo1
             var jsonString = JsonSerializer.Serialize(company);
             var bytes = Encoding.UTF8.GetBytes(jsonString);
             _connection?.Publish("nats.demo.pubsub", bytes);
+        }
+
+        [Benchmark]
+        public void BenchmarkPubSub()
+        {
+            var million = 1000000;
+
+            for (int i = 0; i < million; i++)
+            {
+                var bytes = Encoding.UTF8.GetBytes($"Publish{i}");
+                _connection?.Publish("nats.demo.pubsub", bytes);
+            }
         }
     }
 }
