@@ -1,4 +1,4 @@
-﻿using NATSDemo2;
+﻿using Subscriber;
 
 
-Subscriber.Run();
+Subscribe.Run();

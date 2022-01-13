@@ -1,4 +1,4 @@
-﻿using NATSDemo1;
+﻿using Publisher;
 
 
-Publisher.Run();
+Publish.Run();

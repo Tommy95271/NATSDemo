@@ -9,9 +9,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NATSDemo1
+namespace Publisher
 {
-    public class Publisher
+    public class Publish
     {
         private static IConnection? _connection;
         private const string ALLOWED_OPTIONS = "123qQ";

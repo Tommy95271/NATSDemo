@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NATSDemo2
+namespace Subscriber
 {
-    internal class Subscriber
+    internal class Subscribe
     {
         private static IConnection _connection;
         private static bool _exit = false;
