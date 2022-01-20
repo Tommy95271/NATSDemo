@@ -1,0 +1,3 @@
+﻿using JetStreamPublisher;
+
+JetStreamPublish.Run();
