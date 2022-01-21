@@ -26,7 +26,7 @@ namespace JetStreamPublisher
                     Console.WriteLine("NATS JetStream demo producer");
                     Console.WriteLine("==================");
                     Console.WriteLine("Select mode:");
-                    Console.WriteLine("1) JetStream Pub / Sub");
+                    Console.WriteLine("1) JetStream Pub");
                     Console.WriteLine("q) Quit");
 
                     ConsoleKeyInfo input;
@@ -78,7 +78,7 @@ namespace JetStreamPublisher
 
             JsUtils.CreateStreamOrUpdateSubjects(_connection, stream, subject);
             IJetStream js = _connection.CreateJetStreamContext();
-            Console.WriteLine("Please type any text to publish in JetStream.");
+            Console.WriteLine("Please type in any text to publish in JetStream.");
             var text = Console.ReadLine();
 
             byte[] data = Encoding.UTF8.GetBytes(text);

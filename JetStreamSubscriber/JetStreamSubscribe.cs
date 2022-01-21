@@ -95,27 +95,28 @@ namespace JetStreamSubscriber
             var streamResult = streamExists();
             if (streamResult.result)
             {
+                var consumerResult = consumerExists(streamResult.streamName);
+                ConsumerConfiguration cc = ConsumerConfiguration.Builder()
+                    .WithAckWait(2500)
+                    .Build();
+                PullSubscribeOptions pullOptions = PullSubscribeOptions.Builder()
+                    .WithDurable(consumerResult.consumerName) // required
+                    .WithConfiguration(cc)
+                    .Build();
+                var subjectResult = subjectExists(streamResult.streamName, consumerResult.consumerName);
+                // subscribe
+                IJetStreamPullSubscription sub = _connection.CreateJetStreamContext().PullSubscribe(subjectResult.subjectName, pullOptions);
+
                 Console.WriteLine("How many messages do you want to consume?");
                 var count = Console.ReadLine();
                 Regex regex = new Regex(@"^[0-9]+$");
                 if (regex.IsMatch(count))
                 {
-                    var consumerResult = consumerExists(streamResult.streamName);
-                    ConsumerConfiguration cc = ConsumerConfiguration.Builder()
-                        .WithAckWait(2500)
-                        .Build();
-                    PullSubscribeOptions pullOptions = PullSubscribeOptions.Builder()
-                        .WithDurable(consumerResult.consumerName) // required
-                        .WithConfiguration(cc)
-                        .Build();
-                    var subjectResult = subjectExists(streamResult.streamName, consumerResult.consumerName);
-                    // subscribe
-                    IJetStreamPullSubscription sub = _connection.CreateJetStreamContext().PullSubscribe(subjectResult.subjectName, pullOptions);
                     var countInt = int.Parse(count);
                     IList<Msg> list = sub.Fetch(countInt, 1000);
                     if (countInt > list.Count)
                     {
-                        Console.WriteLine($"The count in subject: {sub.Subject} is {list.Count}, please type in smaller number.");
+                        Console.WriteLine($"The count in subject: {subjectResult.subjectName} is {list.Count}, please type in smaller number.");
                     }
                     else
                     {
