@@ -1,0 +1,3 @@
+﻿using JetStreamSubscriber;
+
+JetStreamSubscribe.Run();
