@@ -46,7 +46,6 @@ namespace JetStreamSubscriberHosted.Client.Pages
         }
         private async Task getConsumers()
         {
-            subjectNames.Clear();
             consumerNames.Clear();
             (await streamService.GetConsumerNames(selectedStreamName)).ToList().ForEach(consumer =>
             {

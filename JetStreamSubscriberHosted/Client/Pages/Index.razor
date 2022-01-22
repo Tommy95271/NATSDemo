@@ -19,6 +19,7 @@
         <div class="k-form-field-wrap">
             <TelerikDropDownList Data="@subjectNames"
                                  @bind-Value="@selectedSubjectName"
+                                 Enabled="selectedStreamName is not null"
                                  OnChange="getConsumers"
                                  DefaultText="請選擇 Subject"
                                  Id="subject"
@@ -35,6 +36,7 @@
         <div class="k-form-field-wrap">
             <TelerikDropDownList Data="@consumerNames"
                                  @bind-Value="@selectedConsumerName"
+                                 Enabled="selectedStreamName is not null"
                                  DefaultText="請選擇 Consumer"
                                  Id="consumer"
                                  Width="100%"

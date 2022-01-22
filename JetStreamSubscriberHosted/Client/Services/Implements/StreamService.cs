@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 
 namespace JetStreamSubscriberHosted.Client.Services.Implements
 {
-    public class StreamService: IStreamService
+    public class StreamService : IStreamService
     {
         private readonly IHttpClientFactory _httpClientFactory;
 
@@ -18,7 +19,7 @@ namespace JetStreamSubscriberHosted.Client.Services.Implements
             httpClient = _httpClientFactory?.CreateClient("NATS");
             var httpResponseMessage = await httpClient.GetAsync("api/Index/GetStreams");
             IEnumerable<string>? streamNames;
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
             {
                 var contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
                 streamNames = JsonSerializer.Deserialize<IEnumerable<string>>(contentStream);
@@ -34,7 +35,7 @@ namespace JetStreamSubscriberHosted.Client.Services.Implements
             httpClient = _httpClientFactory?.CreateClient("NATS");
             var httpResponseMessage = await httpClient.GetAsync($"api/Index/GetSubjects/{streamName}");
             IEnumerable<string>? subjectNames;
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
             {
                 var contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
                 subjectNames = JsonSerializer.Deserialize<IEnumerable<string>>(contentStream);
@@ -50,7 +51,7 @@ namespace JetStreamSubscriberHosted.Client.Services.Implements
             httpClient = _httpClientFactory?.CreateClient("NATS");
             var httpResponseMessage = await httpClient.GetAsync($"api/Index/GetConsumers/{streamName}");
             IEnumerable<string>? consumerNames;
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
             {
                 var contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
                 consumerNames = JsonSerializer.Deserialize<IEnumerable<string>>(contentStream);
