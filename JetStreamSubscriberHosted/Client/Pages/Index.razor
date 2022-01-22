@@ -1,0 +1,61 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+<div class="demo-section k-form k-form-vertical">
+    <div class="k-form-field">
+        <label for="category" class="k-label k-form-label">Stream</label>
+        <div class="k-form-field-wrap">
+            <TelerikDropDownList Data="@streamNames"
+                                 @bind-Value="@selectedStreamName"
+                                 OnChange="getSubjects"
+                                 DefaultText="請選擇 Stream"
+                                 Id="stream"
+                                 Width="100%">
+            </TelerikDropDownList>
+        </div>
+    </div>
+    <div class="k-form-field">
+        <label for="product" class="k-label k-form-label">Subject</label>
+        <div class="k-form-field-wrap">
+            <TelerikDropDownList Data="@subjectNames"
+                                 @bind-Value="@selectedSubjectName"
+                                 OnChange="getConsumers"
+                                 DefaultText="請選擇 Subject"
+                                 Id="subject"
+                                 Width="100%"
+                                 TextField="Text"
+                                 ValueField="Value"
+                                 TValue="string"
+                                 TItem="Dropdown">
+            </TelerikDropDownList>
+        </div>
+    </div>
+    <div class="k-form-field">
+        <label for="order" class="k-label k-form-label">Consumer</label>
+        <div class="k-form-field-wrap">
+            <TelerikDropDownList Data="@consumerNames"
+                                 @bind-Value="@selectedConsumerName"
+                                 DefaultText="請選擇 Consumer"
+                                 Id="consumer"
+                                 Width="100%"
+                                 TextField="Text"
+                                 ValueField="Value"
+                                 TValue="string"
+                                 TItem="Dropdown">
+            </TelerikDropDownList>
+        </div>
+    </div>
+
+    @*<div class="mt-md">
+        <h6 class="kd-demo-heading mt-sm">Order Details:</h6>
+        @if (SelectedMessages != null)
+        {
+        <div class="order-summary-row">Unit Price: <strong>@SelectedMessages.UnitPrice</strong></div>
+        <div class="order-summary-row">Quantity: <strong>@SelectedMessages.Quantity</strong></div>
+        <div class="order-summary-row">Freight: <strong>@SelectedMessages.OrderFreight kg.</strong></div>
+        <div class="order-summary-row">Ship Name: <strong>@SelectedMessages.OrderShipName</strong></div>
+        <div class="order-summary-row">Ship Address: <strong>@SelectedMessages.OrderShipAddress</strong></div>
+        <div class="order-summary-row">Ship Country: <strong>@SelectedMessages.OrderShipCountry</strong></div>
+        }
+        </div>*@
+</div>
