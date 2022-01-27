@@ -1,4 +1,4 @@
-﻿using JetStreamSubscriberHosted.Client.Models;
+﻿using JetStreamSubscriberHosted.Client.ViewModels;
 using JetStreamSubscriberHosted.Client.Services;
 using Microsoft.AspNetCore.Components;
 using System.Collections.ObjectModel;
@@ -15,8 +15,8 @@ namespace JetStreamSubscriberHosted.Client.Pages
 
         #region Properties
         private List<string>? streamNames { get; set; }
-        private ObservableCollection<Dropdown>? subjectNames { get; set; }
-        private ObservableCollection<Dropdown>? consumerNames { get; set; }
+        private ObservableCollection<DropdownViewModel>? subjectNames { get; set; }
+        private ObservableCollection<DropdownViewModel>? consumerNames { get; set; }
         private string? selectedStreamName { get; set; }
         private string? selectedSubjectName { get; set; }
         private string? selectedConsumerName { get; set; }
@@ -32,8 +32,8 @@ namespace JetStreamSubscriberHosted.Client.Pages
         private async Task loadData()
         {
             streamNames = (await streamService.GetStreamNames()).ToList();
-            subjectNames = new ObservableCollection<Dropdown>();
-            consumerNames = new ObservableCollection<Dropdown>();
+            subjectNames = new ObservableCollection<DropdownViewModel>();
+            consumerNames = new ObservableCollection<DropdownViewModel>();
         }
         private async Task getSubjects()
         {
@@ -41,7 +41,7 @@ namespace JetStreamSubscriberHosted.Client.Pages
             consumerNames.Clear();
             (await streamService.GetSubjectNames(selectedStreamName)).ToList().ForEach(steram =>
             {
-                subjectNames.Add(new Dropdown { Text = steram, Value = steram });
+                subjectNames.Add(new DropdownViewModel { Text = steram, Value = steram });
             });
         }
         private async Task getConsumers()
@@ -49,7 +49,7 @@ namespace JetStreamSubscriberHosted.Client.Pages
             consumerNames.Clear();
             (await streamService.GetConsumerNames(selectedStreamName)).ToList().ForEach(consumer =>
             {
-                consumerNames.Add(new Dropdown { Text = consumer, Value = consumer });
+                consumerNames.Add(new DropdownViewModel { Text = consumer, Value = consumer });
             });
         }
         #endregion

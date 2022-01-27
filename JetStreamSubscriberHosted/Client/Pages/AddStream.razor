@@ -1,0 +1,23 @@
+﻿@page "/AddStream"
+
+<div class="demo-section">
+    <div class="w-25">
+        <TelerikForm Model="@stream"
+                     OnValidSubmit="@HandleValidSubmit"
+                     OnInvalidSubmit="@HandleInvalidSubmit">
+            <FormValidation>
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+            </FormValidation>
+            <FormItems>
+                <FormItem Field="@nameof(stream.StreamName)"></FormItem>
+                <TelerikComboBox Data="@storageTypes" TextField="Text" ValueField="Value" @bind-Value="@storageType"
+                                 ClearButton="false" AllowCustom="false" Filterable="true" Placeholder="Select an option">
+                </TelerikComboBox>
+                @foreach (var subject in stream.Subjects)
+                {
+                    <TelerikTextBox @bind-Value="@subject.Value" />
+                }
+            </FormItems>
+        </TelerikForm>
+    </div>
+</div>
