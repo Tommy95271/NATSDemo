@@ -12,7 +12,7 @@ namespace JetStreamSubscriber
     internal class JetStreamSubscribe
     {
         private static IConnection? _connection;
-        private const string ALLOWED_OPTIONS = "123qQ";
+        private const string ALLOWED_OPTIONS = "1234qQ";
         private static bool exit = false;
         private static IJetStreamManagement jsm { get; set; }
 
@@ -25,33 +25,37 @@ namespace JetStreamSubscriber
                 {
                     Console.Clear();
 
-                    Console.WriteLine("NATS JetStream demo producer");
+                    Console.WriteLine("NATS JetStream demo consumer");
                     Console.WriteLine("==================");
                     Console.WriteLine("Select mode:");
-                    Console.WriteLine("1) JetStream create consumer");
-                    Console.WriteLine("2) JetStream subscribe a subject from stream");
-                    Console.WriteLine("3) JetStream delete consumer");
+                    Console.WriteLine("1) JetStream create stream");
+                    Console.WriteLine("2) JetStream create consumer");
+                    Console.WriteLine("3) JetStream subscribe a subject from stream");
+                    Console.WriteLine("4) JetStream delete consumer");
                     Console.WriteLine("q) Quit");
 
-                    ConsoleKeyInfo input;
+                    string input;
                     do
                     {
-                        input = Console.ReadKey(true);
-                    } while (!ALLOWED_OPTIONS.Contains(input.KeyChar));
+                        input = Console.ReadLine();
+                    } while (!ALLOWED_OPTIONS.Contains(input));
 
-                    switch (input.KeyChar)
+                    switch (input)
                     {
-                        case '1':
-                            JetStreamConsumer();
+                        case "1":
+                            JetStreamCreateStream();
                             break;
-                        case '2':
+                        case "2":
+                            JetStreamCreateConsumer();
+                            break;
+                        case "3":
                             JetStreamSub();
                             break;
-                        case '3':
-                            JetStreamDel();
+                        case "4":
+                            JetStreamDeleteConsumer();
                             break;
-                        case 'q':
-                        case 'Q':
+                        case "q":
+                        case "Q":
                             exit = true;
                             continue;
                     }
@@ -75,9 +79,33 @@ namespace JetStreamSubscriber
             return factory.CreateConnection(options);
         }
 
-        private static void JetStreamConsumer()
+        private static void JetStreamCreateStream()
         {
-            banner("JetStream Consumer demo");
+            banner("JetStream Create Stream demo");
+
+            var streamResult = streamExistsBeforeCreating();
+            if (streamResult.result)
+            {
+                var storageTypeResult = chooseStorageType();
+                if (storageTypeResult.result)
+                {
+                    var subjectsResult = setSubjects();
+                    if (subjectsResult.result)
+                    {
+                        StreamConfiguration sc = StreamConfiguration.Builder()
+                            .WithName(streamResult.streamName)
+                            .WithStorageType(storageTypeResult.storageType)
+                            .WithSubjects(subjectsResult.subjects)
+                            .Build();
+                        var streamInfo = jsm.AddStream(sc);
+                    }
+                }
+            }
+        }
+
+        private static void JetStreamCreateConsumer()
+        {
+            banner("JetStream Create Consumer demo");
 
             var streamResult = streamExists();
 
@@ -85,7 +113,14 @@ namespace JetStreamSubscriber
             {
                 Console.WriteLine("Please type in a consumer name.");
                 var consumer = Console.ReadLine();
-                subjectExists(streamResult.streamName, consumer);
+                if (string.IsNullOrWhiteSpace(consumer))
+                {
+                    Console.WriteLine("Please type in a valid consumer name.");
+                }
+                else
+                {
+                    subjectExists(streamResult.streamName, consumer);
+                }
             }
         }
 
@@ -93,9 +128,9 @@ namespace JetStreamSubscriber
         {
             banner("JetStream Subscribe demo");
             var streamResult = streamExists();
-            if (streamResult.result)
+            var consumerResult = consumerExists(streamResult.streamName);
+            if (streamResult.result && consumerResult.result)
             {
-                var consumerResult = consumerExists(streamResult.streamName);
                 ConsumerConfiguration cc = ConsumerConfiguration.Builder()
                     .WithAckWait(2500)
                     .Build();
@@ -134,12 +169,15 @@ namespace JetStreamSubscriber
             }
         }
 
-        private static void JetStreamDel()
+        private static void JetStreamDeleteConsumer()
         {
             banner("JetStream Delete Consumer demo");
             var streamResult = streamExists();
             var consumerResult = consumerExists(streamResult.streamName);
-            jsm.DeleteConsumer(streamResult.streamName, consumerResult.consumerName);
+            if (streamResult.result && consumerResult.result)
+            {
+                jsm.DeleteConsumer(streamResult.streamName, consumerResult.consumerName);
+            }
         }
 
         #region Helpers
@@ -198,7 +236,7 @@ namespace JetStreamSubscriber
         /// <returns></returns>
         private static (bool result, string? subjectName) subjectExists(string streamName, string consumer)
         {
-            Console.WriteLine("Which subject do you want to choose?");
+            Console.WriteLine("Which subject do you want to choose? Please type in 1 to 9.");
             var subjects = jsm.GetStreamInfo(streamName).Config.Subjects;
             for (int i = 0; i < subjects.Count; i++)
             {
@@ -240,32 +278,116 @@ namespace JetStreamSubscriber
         /// <returns></returns>
         private static (bool result, string? consumerName) consumerExists(string streamName)
         {
-            Console.WriteLine("Which consumer do you want to choose?");
             var consumers = jsm.GetConsumerNames(streamName);
-            for (int i = 0; i < consumers.Count; i++)
+            if (consumers.Count == 0)
             {
-                Console.WriteLine($"{i + 1}) {consumers[i]}");
+                Console.WriteLine("There is no consumer.");
+                return (false, null);
+            }
+            else
+            {
+                Console.WriteLine("Which consumer do you want to choose?");
+                for (int i = 0; i < consumers.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}) {consumers[i]}");
+                }
+
+                var consumer = Console.ReadLine();
+                Regex regex = new Regex(@"^[1-9]+$");
+                if (regex.IsMatch(consumer))
+                {
+                    var consumerInt = int.Parse(consumer);
+                    if (consumerInt > consumers.Count)
+                    {
+                        Console.WriteLine("Please type in smaller number.");
+                        return (false, null);
+                    }
+                    else
+                    {
+                        return (true, consumers[consumerInt - 1]);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Please type in digitals from 1 to 9.");
+                    return (false, null);
+                }
+            }
+        }
+
+        private static (bool result, StorageType? storageType) chooseStorageType()
+        {
+            Console.WriteLine("Which Storage Type do you want to choose?");
+            var count = 0;
+            foreach (StorageType storageType in Enum.GetValues(typeof(StorageType)))
+            {
+                count += 1;
+                Console.WriteLine($"{count}) Storage Type: {storageType}");
             }
 
-            var consumer = Console.ReadLine();
-            Regex regex = new Regex(@"^[1-9]+$");
-            if (regex.IsMatch(consumer))
+            var st = Console.ReadLine();
+            Regex regex = new Regex(@"^[1-2]+$");
+            var stLength = Enum.GetValues(typeof(StorageType)).Length;
+            if (regex.IsMatch(st))
             {
-                var consumerInt = int.Parse(consumer);
-                if (consumerInt > consumers.Count)
+                var stInt = int.Parse(st);
+                if (stInt > stLength)
                 {
                     Console.WriteLine("Please type in smaller number.");
                     return (false, null);
                 }
                 else
                 {
-                    return (true, consumers[consumerInt - 1]);
+                    var chosenStorageType = stInt == 1 ? StorageType.Memory : StorageType.File;
+                    return (true, chosenStorageType);
                 }
             }
             else
             {
-                Console.WriteLine("Please type in digitals from 1 to 9.");
+                Console.WriteLine("Please type in digitals from 1 to 2.");
                 return (false, null);
+            }
+        }
+
+        private static (bool result, string[]? subjects) setSubjects()
+        {
+            Console.WriteLine("Please type in subjects separated by comma or space.");
+            var subjects = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(subjects))
+            {
+                Console.WriteLine("Please enter valid subjects separated by comma or space.");
+                return (false, null);
+            }
+            else
+            {
+                var subjectsArray = subjects.Split(new char[] { ',', ' ' });
+                return (true, subjectsArray);
+            }
+        }
+
+
+        /// <summary>
+        /// Examine if the stream exists before creating
+        /// </summary>
+        /// <returns></returns>
+        private static (bool result, string? streamName) streamExistsBeforeCreating()
+        {
+            Console.WriteLine("Please type in a stream name.");
+            var streamName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(streamName))
+            {
+                Console.WriteLine("Please type in a valid stream name.");
+                return (false, null);
+            }
+            var streamNames = jsm.GetStreamNames();
+            if (streamNames.Contains(streamName))
+            {
+                Console.WriteLine("The stream already exists.");
+                return (false, null);
+            }
+            else
+            {
+                return (true, streamName);
             }
         }
 
