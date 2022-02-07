@@ -12,8 +12,9 @@ namespace JetStreamSubscriber
     internal class JetStreamSubscribe
     {
         private static IConnection? _connection;
-        private const string ALLOWED_OPTIONS = "1234qQ";
+        private const string ALLOWED_OPTIONS = "1234567qQ";
         private static string[] _invalidChar = new string[] { " ", ".", ">", "*" };
+        private static Dictionary<string, Action> jetStreamAction;
         private static bool exit = false;
         private static IJetStreamManagement jsm { get; set; }
 
@@ -22,8 +23,21 @@ namespace JetStreamSubscriber
             using (_connection = ConnectToNats())
             {
                 jsm = _connection.CreateJetStreamManagementContext();
+                jetStreamAction = new Dictionary<string, Action>()
+                {
+                    {"1", JetStreamListStreams },
+                    {"2", JetStreamListConsumers },
+                    {"3", JetStreamCreateStream },
+                    {"4", JetStreamCreateConsumer },
+                    {"5", JetStreamSubPullBased },
+                    {"6", JetStreamDeleteStream },
+                    {"7", JetStreamDeleteConsumer },
+                    {"q", () => exit = true },
+                    {"Q", () => exit = true },
+                };
                 while (!exit)
                 {
+
                     Console.Clear();
 
                     var modes = new List<string>() {
@@ -53,33 +67,13 @@ namespace JetStreamSubscriber
                         input = Console.ReadLine();
                     } while (!ALLOWED_OPTIONS.Contains(input));
 
-                    switch (input)
+                    if (jetStreamAction.ContainsKey(input))
                     {
-                        case "1":
-                            JetStreamListStreams();
-                            break;
-                        case "2":
-                            JetStreamListConsumers();
-                            break;
-                        case "3":
-                            JetStreamCreateStream();
-                            break;
-                        case "4":
-                            JetStreamCreateConsumer();
-                            break;
-                        case "5":
-                            JetStreamSubPullBased();
-                            break;
-                        case "6":
-                            JetStreamDeleteStream();
-                            break;
-                        case "7":
-                            JetStreamDeleteConsumer();
-                            break;
-                        case "q":
-                        case "Q":
-                            exit = true;
+                        jetStreamAction[input].Invoke();
+                        if (input == "q" || input == "Q")
+                        {
                             continue;
+                        }
                     }
 
                     Console.WriteLine();
