@@ -9,13 +9,14 @@
                 <DataAnnotationsValidator></DataAnnotationsValidator>
             </FormValidation>
             <FormItems>
-                <FormItem Field="@nameof(stream.StreamName)"></FormItem>
+                <FormItem Field="@nameof(stream.StreamName)" Class="w-50 mb-1" />
+                <label class="my-1" for="storageTypes">Storage Types</label><br />
                 <TelerikComboBox Data="@storageTypes" TextField="Text" ValueField="Value" @bind-Value="@storageType"
-                                 ClearButton="false" AllowCustom="false" Filterable="true" Placeholder="Select an option">
-                </TelerikComboBox>
+                                 ClearButton="false" AllowCustom="false" Filterable="true" Placeholder="Select an option" Class="w-50 mb-1" Id="storageTypes" />
+                <br /><label class="mb-1" for="">請輸入要訂閱的 Subject</label><br />
                 @foreach (var subject in stream.Subjects)
                 {
-                    <TelerikTextBox @bind-Value="@subject.Value" />
+                    <TelerikTextBox @bind-Value="@subject.Value" Class="w-50 mb-1" />
                 }
             </FormItems>
         </TelerikForm>
