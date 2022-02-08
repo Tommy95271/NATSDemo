@@ -30,8 +30,9 @@ namespace JetStreamSubscriber
                     {"3", JetStreamCreateStream },
                     {"4", JetStreamCreateConsumer },
                     {"5", JetStreamSubPullBased },
-                    {"6", JetStreamDeleteStream },
-                    {"7", JetStreamDeleteConsumer },
+                    {"6", JetStreamSubPushBased },
+                    {"7", JetStreamDeleteStream },
+                    {"8", JetStreamDeleteConsumer },
                     {"q", () => exit = true },
                     {"Q", () => exit = true },
                 };
@@ -46,6 +47,7 @@ namespace JetStreamSubscriber
                         "JetStream create stream",
                         "JetStream create consumer",
                         "JetStream subscribe a subject from stream (pull-based)",
+                        "JetStream subscribe a subject from stream (push-based)",
                         "JetStream delete stream",
                         "JetStream delete consumer" };
 
@@ -178,7 +180,7 @@ namespace JetStreamSubscriber
 
         private static void JetStreamSubPullBased()
         {
-            banner("JetStream subscribe demo");
+            banner("JetStream subscribe in pull-based demo");
             var streamResult = streamExists();
             var consumerResult = consumerExists(streamResult.streamName);
             if (streamResult.result && consumerResult.result)
@@ -228,6 +230,68 @@ namespace JetStreamSubscriber
             }
         }
 
+        private static void JetStreamSubPushBased()
+        {
+            banner("JetStream subscribe in push-based demo");
+            var streamResult = streamExists();
+            if (streamResult.result)
+            {
+                PushSubscribeOptions pushOptions = PushSubscribeOptions.Builder()
+                    .WithStream(streamResult.streamName)
+                    .WithDurable(null) // not required in push-based
+                    .Build();
+                var subjectResult = subjectExists(streamResult.streamName, null);
+                // subscribe
+                IJetStreamPushSyncSubscription sub = _connection.CreateJetStreamContext().PushSubscribeSync(subjectResult.subjectName, pushOptions);
+
+                Console.WriteLine("How many messages do you want to consume?");
+                var count = Console.ReadLine();
+                Regex regex = new Regex(@"^[0-9]+$");
+                if (regex.IsMatch(count))
+                {
+                    var countInt = int.Parse(count);
+                    if (countInt == 0)
+                    {
+                        Console.WriteLine("0 message is not allowed!");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < countInt; i++)
+                        {
+                            Msg msg = sub.NextMessage(1000);
+                            Console.WriteLine("\nMessage Received:");
+                            if (msg.HasHeaders)
+                            {
+                                Console.WriteLine("  Headers:");
+                                foreach (string key in msg.Header.Keys)
+                                {
+                                    foreach (string value in msg.Header.GetValues(key))
+                                    {
+                                        Console.WriteLine($"    {key}: {value}");
+                                    }
+                                }
+                            }
+
+                            Console.WriteLine("  Subject: {0}\n  Data: {1}\n", msg.Subject, Encoding.UTF8.GetString(msg.Data));
+                            Console.WriteLine("  " + msg.MetaData);
+
+                            // Because this is a synchronous subscriber, there's no auto-ack.
+                            // The default Consumer Configuration AckPolicy is Explicit
+                            // so we need to ack the message or it'll be redelivered.
+                            msg.Ack();
+                        }
+
+                        sub.Unsubscribe();
+                        _connection.Flush(5000);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Please type in digitals from 0 to 9.");
+                }
+            }
+        }
+        
         private static void JetStreamDeleteStream()
         {
             banner("JetStream delete stream demo");
@@ -303,7 +367,7 @@ namespace JetStreamSubscriber
         /// Examine if the subject exists
         /// </summary>
         /// <returns></returns>
-        private static (bool result, string? subjectName) subjectExists(string streamName, string consumer)
+        private static (bool result, string? subjectName) subjectExists(string streamName, string? consumer)
         {
             Console.WriteLine("Which subject do you want to choose? Please type in 1 to 9.");
             var subjects = jsm.GetStreamInfo(streamName).Config.Subjects;
@@ -325,12 +389,10 @@ namespace JetStreamSubscriber
                 else
                 {
                     var chosenSubject = subjects[subjectInt - 1];
-                    ConsumerConfiguration cc = ConsumerConfiguration.Builder()
-                        .WithAckWait(2500)
-                        .WithDurable(consumer)
-                        .WithFilterSubject(chosenSubject)
-                        .Build();
-                    jsm.AddOrUpdateConsumer(streamName, cc);
+                    if (!string.IsNullOrWhiteSpace(consumer))
+                    {
+                        createConsumer(consumer, chosenSubject, streamName);
+                    }
                     return (true, chosenSubject);
                 }
             }
@@ -339,6 +401,22 @@ namespace JetStreamSubscriber
                 Console.WriteLine("Please type in digitals from 1 to 9.");
                 return (false, null);
             }
+        }
+
+        /// <summary>
+        /// Create a consumer
+        /// </summary>
+        /// <param name="consumer"></param>
+        /// <param name="chosenSubject"></param>
+        /// <param name="streamName"></param>
+        private static void createConsumer(string consumer, string chosenSubject, string streamName)
+        {
+            ConsumerConfiguration cc = ConsumerConfiguration.Builder()
+                .WithAckWait(2500)
+                .WithDurable(consumer)
+                .WithFilterSubject(chosenSubject)
+                .Build();
+            jsm.AddOrUpdateConsumer(streamName, cc);
         }
 
         /// <summary>
