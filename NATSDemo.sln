@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JetStreamSubscriberHosted.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JetStreamSubscriberHosted.Shared", "JetStreamSubscriberHosted\Shared\JetStreamSubscriberHosted.Shared.csproj", "{BD3359E5-3575-48FF-BD6B-6EFCDE8C0F6F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JetStreamShared", "JetStreamShared\JetStreamShared.csproj", "{B7CF7F7C-0AF6-49E7-AFE3-5686F34930B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{BD3359E5-3575-48FF-BD6B-6EFCDE8C0F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD3359E5-3575-48FF-BD6B-6EFCDE8C0F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD3359E5-3575-48FF-BD6B-6EFCDE8C0F6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7CF7F7C-0AF6-49E7-AFE3-5686F34930B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7CF7F7C-0AF6-49E7-AFE3-5686F34930B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7CF7F7C-0AF6-49E7-AFE3-5686F34930B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7CF7F7C-0AF6-49E7-AFE3-5686F34930B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
