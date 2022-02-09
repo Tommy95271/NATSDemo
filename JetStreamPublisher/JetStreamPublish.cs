@@ -12,42 +12,59 @@ namespace JetStreamPublisher
     internal class JetStreamPublish
     {
         private static IConnection? _connection;
-        private const string ALLOWED_OPTIONS = "123qQ";
-        private static bool exit = false;
+        private const string _allowedOptions = "123qQ";
+        private static Dictionary<string, Action> _jetStreamAction;
+        private static bool _exit = false;
 
         internal static void Run()
         {
             using (_connection = ConnectToNats())
             {
-                while (!exit)
+                _jetStreamAction = new Dictionary<string, Action>()
+                {
+                    {"1", JetStreamPubAsync},
+                    //{"2", JetStreamListConsumers },
+                    //{"3", JetStreamCreateStream },
+                    //{"4", JetStreamCreateConsumer },
+                    //{"5", JetStreamSubPullBased },
+                    //{"6", JetStreamSubPushBased },
+                    //{"7", JetStreamDeleteStream },
+                    //{"8", JetStreamDeleteConsumer },
+                    {"q", () => _exit = true },
+                    {"Q", () => _exit = true },
+                };
+                var modes = new List<string>() {
+                    "JetStream Pub async",
+                    "JetStream Pub sync", };
+                while (!_exit)
                 {
                     Console.Clear();
 
                     Console.WriteLine("NATS JetStream demo producer");
                     Console.WriteLine("==================");
                     Console.WriteLine("Select mode:");
-                    Console.WriteLine("1) JetStream Pub");
+
+                    int count = 1;
+                    foreach (var mode in modes)
+                    {
+                        Console.WriteLine($"{count}) {mode}");
+                        count++;
+                    }
                     Console.WriteLine("q) Quit");
 
-                    ConsoleKeyInfo input;
+                    string input;
                     do
                     {
-                        input = Console.ReadKey(true);
-                    } while (!ALLOWED_OPTIONS.Contains(input.KeyChar));
+                        input = Console.ReadLine();
+                    } while (!_allowedOptions.Contains(input));
 
-                    switch (input.KeyChar)
+                    if (_jetStreamAction.ContainsKey(input))
                     {
-                        case '1':
-                            JetStreamPub(_connection);
-                            break;
-                        case '2':
-                            break;
-                        case '3':
-                            break;
-                        case 'q':
-                        case 'Q':
-                            exit = true;
+                        _jetStreamAction[input].Invoke();
+                        if (input == "q" || input == "Q")
+                        {
                             continue;
+                        }
                     }
 
                     Console.WriteLine();
@@ -68,7 +85,13 @@ namespace JetStreamPublisher
 
             return factory.CreateConnection(options);
         }
-        private static void JetStreamPub(IConnection _connection)
+
+        private static void JetStreamPubSync()
+        {
+
+        }
+
+        private static void JetStreamPubAsync()
         {
             var subject = "nats.demo.subject";
             var stream = "nats-demo-stream";

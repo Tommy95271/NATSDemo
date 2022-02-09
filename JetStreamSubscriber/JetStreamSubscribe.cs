@@ -12,7 +12,7 @@ namespace JetStreamSubscriber
     internal class JetStreamSubscribe
     {
         private static IConnection? _connection;
-        private const string _allowedOptions = "1234567qQ";
+        private const string _allowedOptions = "12345678qQ";
         private static string[] _invalidChar = new string[] { " ", ".", ">", "*" };
         private static Dictionary<string, Action> _jetStreamAction;
         private static bool _exit = false;
@@ -36,20 +36,19 @@ namespace JetStreamSubscriber
                     {"q", () => _exit = true },
                     {"Q", () => _exit = true },
                 };
+                var modes = new List<string>() {
+                    "JetStream list all streams",
+                    "JetStream list all consumers in a stream",
+                    "JetStream create stream",
+                    "JetStream create consumer",
+                    "JetStream subscribe a subject from stream (pull-based)",
+                    "JetStream subscribe a subject from stream (push-based)",
+                    "JetStream delete stream",
+                    "JetStream delete consumer" };
+
                 while (!_exit)
                 {
-
                     Console.Clear();
-
-                    var modes = new List<string>() {
-                        "JetStream list all streams",
-                        "JetStream list all consumers in a stream",
-                        "JetStream create stream",
-                        "JetStream create consumer",
-                        "JetStream subscribe a subject from stream (pull-based)",
-                        "JetStream subscribe a subject from stream (push-based)",
-                        "JetStream delete stream",
-                        "JetStream delete consumer" };
 
                     Console.WriteLine("NATS JetStream demo consumer");
                     Console.WriteLine("==================");
@@ -291,7 +290,7 @@ namespace JetStreamSubscriber
                 }
             }
         }
-        
+
         private static void JetStreamDeleteStream()
         {
             banner("JetStream delete stream demo");
