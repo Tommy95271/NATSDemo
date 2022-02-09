@@ -12,18 +12,18 @@ namespace JetStreamSubscriber
     internal class JetStreamSubscribe
     {
         private static IConnection? _connection;
-        private const string ALLOWED_OPTIONS = "1234567qQ";
+        private const string _allowedOptions = "1234567qQ";
         private static string[] _invalidChar = new string[] { " ", ".", ">", "*" };
-        private static Dictionary<string, Action> jetStreamAction;
-        private static bool exit = false;
-        private static IJetStreamManagement jsm { get; set; }
+        private static Dictionary<string, Action> _jetStreamAction;
+        private static bool _exit = false;
+        private static IJetStreamManagement _jsm { get; set; }
 
         internal static void Run()
         {
             using (_connection = ConnectToNats())
             {
-                jsm = _connection.CreateJetStreamManagementContext();
-                jetStreamAction = new Dictionary<string, Action>()
+                _jsm = _connection.CreateJetStreamManagementContext();
+                _jetStreamAction = new Dictionary<string, Action>()
                 {
                     {"1", JetStreamListStreams },
                     {"2", JetStreamListConsumers },
@@ -33,10 +33,10 @@ namespace JetStreamSubscriber
                     {"6", JetStreamSubPushBased },
                     {"7", JetStreamDeleteStream },
                     {"8", JetStreamDeleteConsumer },
-                    {"q", () => exit = true },
-                    {"Q", () => exit = true },
+                    {"q", () => _exit = true },
+                    {"Q", () => _exit = true },
                 };
-                while (!exit)
+                while (!_exit)
                 {
 
                     Console.Clear();
@@ -67,11 +67,11 @@ namespace JetStreamSubscriber
                     do
                     {
                         input = Console.ReadLine();
-                    } while (!ALLOWED_OPTIONS.Contains(input));
+                    } while (!_allowedOptions.Contains(input));
 
-                    if (jetStreamAction.ContainsKey(input))
+                    if (_jetStreamAction.ContainsKey(input))
                     {
-                        jetStreamAction[input].Invoke();
+                        _jetStreamAction[input].Invoke();
                         if (input == "q" || input == "Q")
                         {
                             continue;
@@ -100,7 +100,7 @@ namespace JetStreamSubscriber
         private static void JetStreamListStreams()
         {
             banner("JetStream list all stream demo");
-            var streamNames = jsm.GetStreamNames();
+            var streamNames = _jsm.GetStreamNames();
             var count = 1;
             foreach (var streamName in streamNames)
             {
@@ -115,7 +115,7 @@ namespace JetStreamSubscriber
             var streamResult = streamExists();
             if (streamResult.result)
             {
-                var consumerNames = jsm.GetConsumerNames(streamResult.streamName);
+                var consumerNames = _jsm.GetConsumerNames(streamResult.streamName);
                 if (consumerNames.Count == 0)
                 {
                     Console.WriteLine("There is no consumer in the stream.");
@@ -151,7 +151,7 @@ namespace JetStreamSubscriber
                             .WithStorageType(storageTypeResult.storageType)
                             .WithSubjects(subjectsResult.subjects)
                             .Build();
-                        var streamInfo = jsm.AddStream(sc);
+                        var streamInfo = _jsm.AddStream(sc);
                     }
                 }
             }
@@ -298,7 +298,7 @@ namespace JetStreamSubscriber
             var streamResult = streamExists();
             if (streamResult.result)
             {
-                jsm.DeleteStream(streamResult.streamName);
+                _jsm.DeleteStream(streamResult.streamName);
             }
         }
 
@@ -309,7 +309,7 @@ namespace JetStreamSubscriber
             var consumerResult = consumerExists(streamResult.streamName);
             if (streamResult.result && consumerResult.result)
             {
-                jsm.DeleteConsumer(streamResult.streamName, consumerResult.consumerName);
+                _jsm.DeleteConsumer(streamResult.streamName, consumerResult.consumerName);
             }
         }
 
@@ -329,7 +329,7 @@ namespace JetStreamSubscriber
         private static (bool result, string? streamName) streamExists()
         {
             Console.WriteLine("Which stream do you want to choose?");
-            var streamNames = jsm.GetStreamNames();
+            var streamNames = _jsm.GetStreamNames();
             for (int i = 0; i < streamNames.Count; i++)
             {
                 Console.WriteLine($"{i + 1}) {streamNames[i]}");
@@ -370,7 +370,7 @@ namespace JetStreamSubscriber
         private static (bool result, string? subjectName) subjectExists(string streamName, string? consumer)
         {
             Console.WriteLine("Which subject do you want to choose? Please type in 1 to 9.");
-            var subjects = jsm.GetStreamInfo(streamName).Config.Subjects;
+            var subjects = _jsm.GetStreamInfo(streamName).Config.Subjects;
             for (int i = 0; i < subjects.Count; i++)
             {
                 Console.WriteLine($"{i + 1}) {subjects[i]}");
@@ -416,7 +416,7 @@ namespace JetStreamSubscriber
                 .WithDurable(consumer)
                 .WithFilterSubject(chosenSubject)
                 .Build();
-            jsm.AddOrUpdateConsumer(streamName, cc);
+            _jsm.AddOrUpdateConsumer(streamName, cc);
         }
 
         /// <summary>
@@ -425,7 +425,7 @@ namespace JetStreamSubscriber
         /// <returns></returns>
         private static (bool result, string? consumerName) consumerExists(string streamName)
         {
-            var consumers = jsm.GetConsumerNames(streamName);
+            var consumers = _jsm.GetConsumerNames(streamName);
             if (consumers.Count == 0)
             {
                 Console.WriteLine("There is no consumer.");
@@ -526,7 +526,7 @@ namespace JetStreamSubscriber
                 Console.WriteLine("Space, period, > or * is not allowed, please type in a valid stream name.");
                 return (false, null);
             }
-            var streamNames = jsm.GetStreamNames();
+            var streamNames = _jsm.GetStreamNames();
             if (streamNames.Contains(streamName))
             {
                 Console.WriteLine("The stream already exists.");
