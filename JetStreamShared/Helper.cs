@@ -64,7 +64,7 @@ namespace JetStreamShared
         /// Examine if the subject exists
         /// </summary>
         /// <returns></returns>
-        public (bool result, string? subjectName) subjectExists(IJetStreamManagement jsm, string streamName, string? consumer)
+        public (bool result, string? subjectName) subjectExists(IJetStreamManagement jsm, string streamName, string? consumer = null)
         {
             Console.WriteLine("Which subject do you want to choose? Please type in 1 to 9.");
             var subjects = jsm.GetStreamInfo(streamName).Config.Subjects;

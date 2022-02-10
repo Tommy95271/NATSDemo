@@ -21,11 +21,3 @@ var builder = Host.CreateDefaultBuilder(args)
     });
 
 builder.Build().RunAsync();
-
-
-//    .AddNats(sp =>
-//{
-//    sp.Servers = new[] { "nats://localhost:4222", "nats://localhost:5222" };
-//    sp.Name = "BlazorHosted";
-//    sp.Timeout = 3000;
-//});

@@ -18,7 +18,6 @@ namespace JetStreamSubscriber
             StreamSpace streamSpace,
             Subscribe subscribe,
             Consumer consumer,
-            Helper helper,
             ILogger<JetStreamSubscribe> logger,
             IHostApplicationLifetime appLifetime)
         {
@@ -26,7 +25,6 @@ namespace JetStreamSubscriber
             _streamSpace = streamSpace;
             _subscribe = subscribe;
             _consumer = consumer;
-            _helper = helper;
             _logger = logger;
             _appLifetime = appLifetime;
         }
@@ -35,7 +33,6 @@ namespace JetStreamSubscriber
         private readonly StreamSpace _streamSpace;
         private readonly Subscribe _subscribe;
         private readonly Consumer _consumer;
-        private readonly Helper _helper;
         private readonly ILogger<JetStreamSubscribe> _logger;
         private readonly IHostApplicationLifetime _appLifetime;
         private readonly string _allowedOptions = "12345678qQ";
