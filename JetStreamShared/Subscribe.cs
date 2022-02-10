@@ -72,63 +72,52 @@ namespace JetStreamShared
 
         public void JetStreamSubPushBased(IJetStreamManagement jsm, IJetStream js)
         {
-            _helper.banner("JetStream subscribe in push-based demo");
-            var streamResult = _helper.streamExists(jsm);
-            if (streamResult.result)
+            try
             {
-                PushSubscribeOptions pushOptions = PushSubscribeOptions.Builder()
-                    .WithStream(streamResult.streamName)
-                    .WithDurable(null) // not required in push-based
-                    .Build();
-                var subjectResult = _helper.subjectExists(jsm, streamResult.streamName, null);
-                // subscribe
-                IJetStreamPushSyncSubscription sub = js.PushSubscribeSync(subjectResult.subjectName, pushOptions);
-
-                Console.WriteLine("How many messages do you want to consume?");
-                var count = Console.ReadLine();
-                Regex regex = new Regex(@"^[0-9]+$");
-                if (regex.IsMatch(count))
+                _helper.banner("JetStream subscribe in push-based demo");
+                var streamResult = _helper.streamExists(jsm);
+                if (streamResult.result)
                 {
-                    var countInt = int.Parse(count);
-                    if (countInt == 0)
+                    PushSubscribeOptions pushOptions = PushSubscribeOptions.Builder()
+                        .WithStream(streamResult.streamName)
+                        .WithDurable(null) // not required in push-based, server will create randomly consumer(s) to consume messages
+                        .Build();
+                    var subjectResult = _helper.subjectExists(jsm, streamResult.streamName, null);
+
+                    Console.WriteLine("Warning, push-based subscription means the messages will be pushed ASAP! Press enter to make sure you want to do it.");
+
+                    ConsoleKeyInfo keyInfo = Console.ReadKey();
+                    if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        Console.WriteLine("0 message is not allowed!");
-                    }
-                    else
-                    {
-                        for (int i = 0; i < countInt; i++)
+                        new Thread(() =>
                         {
-                            Msg msg = sub.NextMessage(1000);
-                            Console.WriteLine("\nMessage Received:");
-                            if (msg.HasHeaders)
+                            js.PushSubscribeAsync(subjectResult.subjectName, (sender, a) =>
                             {
-                                Console.WriteLine("  Headers:");
-                                foreach (string key in msg.Header.Keys)
+                                a.Message.Ack();
+                                Console.WriteLine("\nMessage Received:");
+                                Console.WriteLine("  Subject: {0}\n  Data: {1}\n", a.Message.Subject, Encoding.UTF8.GetString(a.Message.Data));
+                                Console.WriteLine("  " + a.Message.MetaData);
+                                if (a.Message.HasHeaders)
                                 {
-                                    foreach (string value in msg.Header.GetValues(key))
+                                    Console.WriteLine("  Headers:");
+                                    foreach (string key in a.Message.Header.Keys)
                                     {
-                                        Console.WriteLine($"    {key}: {value}");
+                                        foreach (string value in a.Message.Header.GetValues(key))
+                                        {
+                                            Console.WriteLine($"    {key}: {value}");
+                                        }
                                     }
                                 }
-                            }
-
-                            Console.WriteLine("  Subject: {0}\n  Data: {1}\n", msg.Subject, Encoding.UTF8.GetString(msg.Data));
-                            Console.WriteLine("  " + msg.MetaData);
-
-                            // Because this is a synchronous subscriber, there's no auto-ack.
-                            // The default Consumer Configuration AckPolicy is Explicit
-                            // so we need to ack the message or it'll be redelivered.
-                            msg.Ack();
-                        }
-
-                        sub.Unsubscribe();
-                        //_connection.Flush(5000);
+                            }, false);
+                        }).Start();
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Please type in digitals from 0 to 9.");
-                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
             }
         }
     }

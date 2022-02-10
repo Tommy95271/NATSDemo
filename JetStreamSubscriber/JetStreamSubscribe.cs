@@ -121,10 +121,6 @@ namespace JetStreamSubscriber
             return Task.CompletedTask;
         }
 
-        #region Helpers
-
-        #endregion
-
         private void Clear()
         {
             Console.Clear();
