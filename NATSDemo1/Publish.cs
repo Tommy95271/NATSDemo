@@ -14,7 +14,7 @@ namespace Publisher
     public class Publish
     {
         private static IConnection? _connection;
-        private const string ALLOWED_OPTIONS = "123qQ";
+        private const string ALLOWED_OPTIONS = "123bqQ";
         private static bool exit = false;
 
 
@@ -32,6 +32,7 @@ namespace Publisher
                     Console.WriteLine("1) Pub / Sub");
                     Console.WriteLine("2) Request / Response");
                     Console.WriteLine("3) Load-balancing (queue groups)");
+                    Console.WriteLine("b) Benchmark Runner");
                     Console.WriteLine("q) Quit");
 
                     ConsoleKeyInfo input;
@@ -51,6 +52,9 @@ namespace Publisher
                         case '3':
                             QueueGroups();
                             break;
+                        case 'b':
+                            BenchmarkRunner.Run(typeof(Publish).Assembly);
+                            break;
                         case 'q':
                         case 'Q':
                             exit = true;
@@ -61,7 +65,6 @@ namespace Publisher
                     Console.WriteLine("Done. Press any key to continue...");
                     Console.ReadKey(true);
                     Clear();
-                    //BenchmarkRunner.Run(typeof(Publisher).Assembly);
                 }
             }
         }
